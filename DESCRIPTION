@@ -2,3 +2,5 @@ Package: MARI322
 Type: Package
 Title: Functions and tutorials for MARI322 (Otakou Whakaihu Waka)
 Version: 0.0.1.0
+Suggests: 
+    learnr
