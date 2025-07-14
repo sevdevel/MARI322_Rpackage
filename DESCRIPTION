@@ -2,5 +2,5 @@ Package: MARI322
 Type: Package
 Title: Functions and tutorials for MARI322 (Otakou Whakaihu Waka)
 Version: 0.0.1.0
-Depends: R (>= 3.5.0), learnr, ReacTran, deSolve, rootSolve, plot3D
-Suggests: knitr, rmarkdown, FME, marelac
+Depends: R (>= 3.5.0), learnr, ReacTran, deSolve, rootSolve, plot3D, marelac
+Suggests: knitr, rmarkdown, FME

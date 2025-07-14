@@ -312,38 +312,6 @@ Calculating air-sea exchange can be done very simply if we know the gas concentr
 $$ F_{air-sea} = k_{piston}(pCO_2 - [CO_2]_{aq}) $$
 In this equation, $k_{piston}$ is simply a parameter that tells how fast the gas goes towards equilibrium. in week 34 we discussed how the wind velocity is a major control on air-sea gas exchange. To calculate the air-sea exchange of $CO_2$, there is one complicating factor, namely (again discussed during week 34):
 
-```{r gas-dissolution-2, echo=FALSE}
-question("What is the extra complicating factor for the dissolution of CO2 in seawater?",
-  answer("CO2 in seawater behaves as an acid", correct = TRUE),
-  answer("There is very little CO2 in the atmosphere (compared to oxygen)"),
-  answer("There is a lot of CO2 in the atmosphere (compared to methane)"),
-  answer("I really should have attended more of the workshops"),
-  random_answer_order = TRUE,
-  allow_retry = TRUE
-)
-
-```
-So the solubility of $CO_2$ does not only depend on salinity and temperature, but also on the TA of seawater. This means we will have to solve the carbonate system before we can calculate the air-sea flux. These calculations are not trivial, and are well beyond what is expected of a marine science major. Luckily, there are several tools that can help us to calculate the carbonate system. Have a look on the web and see if you can find one
-```{r WebSearch-4}
-  question_text("Name one tool to calculate carbonate chemistry, other than the one we will use here (R-package seacarb))",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 1)
-```
-We will be using the R-package 'seacarb' (check it out at https://cran.r-project.org/web/packages/seacarb/seacarb.pdf). The use of it is fairly simple, as we only need one line of code to find the solution, and the package includes a lot of default parameter choices. Important to remember is that concentrations of DIC and TA are given in $mol \ kg^{-1}$, and NOT $\mu mol \ kg^{-1}$. The piece of code below calculates the pH of the ocean for increasing levels of atmospheric $CO_2$.
-```{r carbonate-chemistry, exercise=TRUE}
-pCO2.vector <- c(280,300,320,340,360,380,400,420)
-
-plot(x=NULL,y=NULL,xlim=c(280,500),ylim=c(7.6,8.3),
-     xlab=expression(pCO['2']~(ppm)),ylab=expression(pH))
-for (i in 1:length(pCO2.vector)){
-  points(x=pCO2.vector[i],y=carb(flag=24,var1=pCO2.vector[i],var2=2300*1e-6, S=35, T=25)$pH,
-         pch=16,cex=1.2,col="black") 
-}
-```
-
 
 ## Adding reactions (20 minutes)
 
