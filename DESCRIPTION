@@ -2,5 +2,10 @@ Package: MARI322
 Type: Package
 Title: Functions and tutorials for MARI322 (Otakou Whakaihu Waka)
 Version: 0.0.1.0
+Author: Sebastiaan van de Velde (sebastiaan.vandevelde@otago.ac.nz)
+Maintainer: Sebastiaan van de Velde (sebastiaan.vandevelde@otago.ac.nz)
 Depends: R (>= 3.5.0), learnr, ReacTran, deSolve, rootSolve, plot3D, marelac
 Suggests: knitr, rmarkdown, FME
+Description: Tutorials, exercises for MARI322 'Coastal and Shelf Oceanography', taught at the University of Otago (Aotearoa).
+License: GPL (>=3.0)
+VignetteBuilder: knitr

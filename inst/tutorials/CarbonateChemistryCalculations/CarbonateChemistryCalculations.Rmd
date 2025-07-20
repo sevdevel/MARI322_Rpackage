@@ -1,5 +1,7 @@
 ---
 title: "Gas dissolution and marine carbonate chemistry"
+author: "Sebastiaan van de Velde"
+description: "Excercises to demonstrate the use of R in calculating sea-air gas exchange and carbonate chemistry calculations."
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---

@@ -1,5 +1,7 @@
 ---
 title: "Building a model of harbour carbon cycling"
+author: "Sebastiaan van de Velde"
+description: "Excercises to build a carbon box model in R, tailored to the Otago Harbour"
 output: learnr::tutorial
 runtime: shiny_prerendered
 ---
