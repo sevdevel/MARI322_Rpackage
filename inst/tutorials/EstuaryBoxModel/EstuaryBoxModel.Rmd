@@ -137,29 +137,6 @@ Now proceed to the next step.
 
 ## Adding dissolved tracers (30 minutes)
 
-Now that we have our circulation going, we can add in dissolved tracers. Since we are interested in the carbon cycle, we will include Dissolved Inorganic Carbon (DIC) and Total Alkalinity (TA). Take a minute to think about what we discussed in week 34 and answer the following questions
-
-```{r DIC, echo=FALSE}
-question("What does Dissolved Inorganic Carbon (DIC) mean?",
-  answer("All the carbon in the ocean"),
-  answer("All the CO2 that is dissolved in seawater", correct = TRUE),
-  answer("Carbon that is locked into phytoplankton"),
-  answer("Water acidity"),
-  random_answer_order = TRUE,
-  allow_retry = TRUE
-)
-```
-
-```{r TA, echo=FALSE}
-question("Why do we care about Total Alkalinity (TA)?",
-  answer("TA is a metric for productivity"),
-  answer("TA allows us to calculate water fluxes"),
-  answer("TA determines how much CO2 can be dissolved in seawater", correct = TRUE),
-  answer("I really should have attended more of the workshops"),
-  random_answer_order = TRUE,
-  allow_retry = TRUE
-)
-```
 
 To add dissolved tracers to our model, we need to define the 'boundary conditions'. These are the concentrations at the boundary of our model, which in our case will be the Owheo River and the ocean. Additionally, since we are now going to work with concentrations, we need to know the volume of our box (the harbour).
 
@@ -187,10 +164,10 @@ you will notice you need to log in to access the database, which you do not need
     rows = 1)
 ```
 
-Before running the model, take a look at the code (below). There is a conversion factor of 1.023 (see at the end of L25), which is to convert the TA and DIC concentrations from $\mu mol \ kg^{-1}$ seawater to $\mu mol \ L^{-1}$ (remember that very first lab in week 29?). There is also a slightly more complicated conversion factor in that line ($1e3*3600*365.25$, 1e3 = $10^{10}$ = 1000). This is to convert the water flow from m3/s to what unit?
+Before running the model, take a look at the code (below). There is a conversion factor of 1.023 (see at the end of L25), which is to convert the TA and DIC concentrations from $\mu mol \ kg^{-1}$ seawater to $\mu mol \ L^{-1}$ (remember that very first lab in week 29?). There is also a slightly more complicated conversion factor in that line ($1e3*3600*24*365.25$, 1e3 = $10^{10}$ = 1000). This is to convert the water flow from m3/s to what unit?
 
 ```{r unit-conversion-1}
-  question_text("What unit does m3/s convert to if you multiply it with 1000 x 3600 x 365.25?",
+  question_text("What unit does m3/s convert to if you multiply it with 1000 x 3600 x 24 x 365.25?",
     answer("dm3/yr", correct = TRUE),
     answer("dm3/year", correct = TRUE),
     answer("dm3/y", correct = TRUE),
@@ -230,15 +207,15 @@ OH.box <- function(t, state, parameters)
     Q_ocean_in  <- (S.surface*Q.Owheo) / (S.deep-S.surface)
     Q_ocean_out <- (S.deep*Q.Owheo) / (S.deep-S.surface)
     
-    F_TA_ocean_in   <- (Q_ocean_in*1e3*3600*365.25)  * (TA.ocean*1.023)
-    F_TA_ocean_out  <- (Q_ocean_out*1e3*3600*365.25) * (TA.harbour*1.023)
+    F_TA_ocean_in   <- (Q_ocean_in*1e3*3600*24*365.25)  * (TA.ocean*1.023)
+    F_TA_ocean_out  <- (Q_ocean_out*1e3*3600*24*365.25) * (TA.harbour*1.023)
     
-    F_DIC_ocean_in  <- (Q_ocean_in*1e3*3600*365.25)  * (DIC.ocean*1.023)
-    F_DIC_ocean_out <- (Q_ocean_out*1e3*3600*365.25) * (DIC.harbour*1.023)
+    F_DIC_ocean_in  <- (Q_ocean_in*1e3*3600*24*365.25)  * (DIC.ocean*1.023)
+    F_DIC_ocean_out <- (Q_ocean_out*1e3*3600*24*365.25) * (DIC.harbour*1.023)
     
     # riverine input [umol yr-1]
-    F_TA_owheo  <- (Q.Owheo*1e3*3600*365.25) * (TA.Owheo)
-    F_DIC_owheo <- (Q.Owheo*1e3*3600*365.25) * (DIC.Owheo)
+    F_TA_owheo  <- (Q.Owheo*1e3*3600*24*365.25) * (TA.Owheo)
+    F_DIC_owheo <- (Q.Owheo*1e3*3600*24*365.25) * (DIC.Owheo)
     
     ### Mass balances 
     ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo  )/(V.harbour/1.023)
@@ -312,6 +289,18 @@ Calculating air-sea exchange can be done very simply if we know the gas concentr
 $$ F_{air-sea} = k_{piston}(pCO_2 - [CO_2]_{aq}) $$
 In this equation, $k_{piston}$ is simply a parameter that tells how fast the gas goes towards equilibrium. in week 34 we discussed how the wind velocity is a major control on air-sea gas exchange. To calculate the air-sea exchange of $CO_2$, there is one complicating factor, namely (again discussed during week 34):
 
+```{r gas-dissolution-2, echo=FALSE}
+question("What is the extra complicating factor for the dissolution of CO2 in seawater?",
+  answer("CO2 in seawater behaves as an acid", correct = TRUE),
+  answer("There is very little CO2 in the atmosphere (compared to oxygen)"),
+  answer("There is a lot of CO2 in the atmosphere (compared to methane)"),
+  answer("I really should have attended more of the workshops"),
+  random_answer_order = TRUE,
+  allow_retry = TRUE
+)
+
+```
+So the solubility of $CO_2$ does not only depend on salinity and temperature, but also on the TA of seawater. This means we will have to solve the carbonate system before we can calculate the air-sea flux.
 
 ## Adding reactions (20 minutes)
 
