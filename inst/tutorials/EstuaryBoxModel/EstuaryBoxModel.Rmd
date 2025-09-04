@@ -18,12 +18,7 @@ knitr::opts_chunk$set(out.width = '90%')
 
 ## Overview
 
-The aim of today is to bring together the different modules of the past 9 weeks into a single model of the carbon cycle in Otago harbour. In this step-by-step tutorial, we will gradually build up the required model code to be able to run this model, and at each step you will put in the data you collected over the past weeks. At the end of the tutorial, you will save the answers you supplied as a html file, and you will submit this file as your report for this module.
-
-Before anything else, make sure you fill in your name and ID in the next field.
-
-```{r info-section, child = system.file("child_documents/info_section.Rmd", package = "tutorial.helpers")}
-```
+The aim of today is to bring together the different modules of the past 9 weeks into a single model of the carbon cycle in Otago harbour. In this step-by-step tutorial, we will gradually build up the required model code to be able to run this model, and at each step you will put in the data you collected over the past weeks. 
 
 ## Purpose and outcomes of activity
 
@@ -37,51 +32,43 @@ By the end of today's session, you should be able to:
 
 \* Use a simple pre-coded carbon cycle box model to answer environmentally relevant questions (which will be very useful for the last module of this paper!)
 
+## Determine on model dimensions (15 minutes)
+
+After deciding what our model type will be, we have to find the dimensions of our model domain. 
+In the code chunk below we will create our parameter vector, which will contain all our model parameters over time. The code chunk then prints the vector so we can see whether it is correct. 
+Find the volume and surface area for our harbour box (week 1 & 2), and **fill in the answer on vevox.**
+Then fill in the correct values in the code chunk below.
+
+```{r dimensions, exercise=TRUE}
+
+pars <- c(
+  V_box = 1.0, # [m3] volume of our box
+  A_box = 1.0  # [m3] surface area of our box
+)
+
+print(pars)
+```
+
 ## Setting up the Harbour circulation (30 minutes)
 
-Last year during MARI201 (The physical ocean), you learned how to build a box model of fjord circulation (the figure might revive your memory).
+During the physical oceanography part of this paper (weeks 3 and 4), you looked at residence time. We will now use those values to set up the circulation part of our harbour model. You should have an estimate for the discharge of water from the ocean into the harbour, but we have not measured the flow of the Owheo. This happens often - we are not always able to measure every parameter that is potentially important. Luckily for us, the internet exists, and a lot of information is available online. 
 
-![](images/FjordCirculation.png){width="14cm"}
+First, we will use the tidal discharge we estimated during week 3 and 4 ('Physical Oceanography'). Back then you have determined a residence time, so you can calculate the resulting exchange rate (or water flux) between the harbour and the open ocean ('Q'), using the volume f the Harbour ('V'):
+$$ RT = \frac{V}{Q}$$
+Using your own values, calculate a water flow (in $m^3/s$ -\> CHECK UNITS) and **answer the question on vevox**
 
-Conveniently, fjord circulation is very similar to the circulation in harbours and estuaries. This means we can use the same principles (The so-called 'Knudsen Relations') to set up the physical circulation of Otago harbour. The equations are $$Q_{ocean,in} = \frac{S_{surface}*Q_{freshwater}}{S_{deep}-S_{surface}} $$ $$Q_{ocean,out} = \frac{S_{deep}*Q_{freshwater}}{S_{deep}-S_{surface}} $$ See that we use slightly different parameters for water flow (Q instead of F), and we explicitly name the salinity values for the surface and deep layer (rather than 1 and 2), and the freshwater flux ($Q_{freshwater}$). The rest of the model is identical. In the case of Otago harbour, we only have the Owheo as significant river input, so we can make the name even more specific and use $Q_{Owheo}$. For this circulation model, there are thus three parameters in total: salinity for the surface layer ($S_{surface}$), salinity for the deep layer ($S_{deep}$), and freshwater input ($Q_{Owheo}$).
+Next, do a quick web search and find the background discharge (in $m^3/s$ -\> CHECK UNITS!) of the Owheo River (hint: the Otago Regional Council regularly monitors rivers). **Answer the question on vevox.**
 
-We have measured the salinity in week 37, but we not have not measured the flow of the Owheo. This happens often - we are not always able to measure every parameter that is potentially important. Luckily for us, the internet exists, and a lot of information is available online. Do a quick web search and find the background discharge (in m3/s -\> CHECK UNITS!) of the Owheo River (hint: the Otago Regional Council regularly monitors rivers).
-
-```{r WebSearch-1}
-  question_text("What is the background flow of the Owheo in m3/s?",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 1)
-```
-
-Before running the modelm have a look at the code chunk below, and answer the following questions:
-```{r parameter-1}
-  question_text("Which parameter represents the surface salinity?",
-    answer("S.surface", correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = "Try again!",
-    rows = 1)
-```
-
-```{r parameter-2}
-  question_text("Which parameter represents the water flux from the ocean?",
-    answer("Q_ocean_in", correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = "Try again!",
-    rows = 1)
-```
-Now, try and run the code chunk
+Now, fill in the correct values in the parameter vector below and run the code chunk
 
 ```{r harbour-circulation, exercise=TRUE}
 
 pars <- c(
-  S.surface = 33,  # [-] Salinity surface water layer
-  S.deep    = 35,  # [-] Salinity surface water layer
-  Q.Owheo   = 0.36 # [m3/s]
+  Q_ocean_in = 1.0, # [m3/s] flow of the ocean into the harbour
+  Q_Owheo    = 1.0, # [m3/s] flow of the Owheo
+
+  V_box = 1.0, # [m3] volume of our box
+  A_box = 1.0  # [m3] surface area of our box
 )
 
 OH.box <- function(t, state, parameters)
@@ -90,8 +77,8 @@ OH.box <- function(t, state, parameters)
 
     ### Fluxes
     # estuarine exchange 
-    Q_ocean_in  <- (S.surface*Q.Owheo) / (S.deep-S.surface)
-    Q_ocean_out <- (S.deep*Q.Owheo) / (S.deep-S.surface)
+    Q_ocean_in  <- Q_ocean_in
+    Q_ocean_out <- Q_ocean_in + Q_Owheo
     
     ### assemble SV vector
     SV.return <- c(0) 
@@ -107,94 +94,44 @@ OH.box <- function(t, state, parameters)
 }  # end of model equations
 
 solution <- steady(y = c(0), func = OH.box, method = "stode", positive=T, parms = pars)
-print(paste("Water flux from ocean = ",solution$Q_ocean_in," m3/s"))
-print(paste("Water flux to ocean = ",solution$Q_ocean_out," m3/s"))
-```
-
-Now, replace the salinity values with the salinity you measured during Week 37 ('Biological Oceanography'), change the Owheo discharge with the value you found online, and rerun the model. Using your own values, what is the calculated water flow from the harbour to the ocean?
-
-```{r water-flow-1}
-  question_text("What is the calculated water flow from the harbour to the ocean?",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 1)
-```
-
-During the Lagrangian module in week 41-42, you derived a residence time of material in the harbour. Our model also allows us to calculate a residence time. We are not tracking individual particles, so we are using a Eulerian approach, and the residence time can be calculated by dividing the amount of water in the reservoir by the net flux of water out of the reservoir. 
-$$ RT = \frac{V}{Q}$$
-In our very first week (week 29), we have determined the water volume of the harbour, and we you just were asked to report the flux of water to the ocean (Q_ocean_out). Use those two values to calculate the residence time, and answer the question below (answer concisely, and fit the answer in the provided box.)
-
-```{r water-flow-2}
-  question_text("How does our modelled residence time compare to the one derived from the Lagrangian model? What would explain the difference?",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 5)
+print(paste("Q_ocean_in = ",solution$Q_ocean_in," m3/s"))
+print(paste("Q_ocean_out = ",solution$Q_ocean_out," m3/s"))
 ```
 
 Now proceed to the next step.
 
 ## Adding dissolved tracers (30 minutes)
 
+To be able to simulate the removal of $CO_2$ from the atmosphere, we need to add more than just water flow. We should not decide what 'tracers' we would like to include. We also want to keep in mind that we want to keep the model as simple as possible, and still be able to answer our research question! **Answer the poll on Vevox.**
 
-To add dissolved tracers to our model, we need to define the 'boundary conditions'. These are the concentrations at the boundary of our model, which in our case will be the Owheo River and the ocean. Additionally, since we are now going to work with concentrations, we need to know the volume of our box (the harbour).
+To add dissolved tracers to our model, we also need to define the 'boundary conditions'. These are the concentrations at the boundary of our model, which in our case will be the Owheo River and the ocean.  We did not measure alkalinity and DIC at the open ocean boundary of the harbour, nor at the river mouth. This means we will need to make an 'educated guess'. If you were doing this 'for real', you would be searching the web for available data - take 10 mins and try to find a relevant database for ocean carbon chemistry measurements on the Otago shelf (Hint: remember the Munida transect we talked about in week 6, and that we are looking for 'ocean carbon' measurements). **Answer the question below in your report template.**
 
-ADD FIGURE
+**"Which database exists that has ocean carbon measurements on the Otago shelf?"**
 
-If the weather was good during the Polaris trip of week 34, we have measured alkalinity and DIC at the open ocean boundary of the harbour. If not, we will need to make an 'educated guess'. If you were doing this 'for real', you would be searching the web for available data - take 10 mins and try to find a relevant database for ocean carbon chemistry measurements on the Otago shelf (Hint: remember the Munida transect we talked about in week 34, and that we are looking for 'ocean carbon' measurements)
+you will notice you need to log in to access the database, which you do not need to do. Instead, we can use a TA concentration of 2300 $\mu mol \ kg^{-1}$ and a DIC concentration of 2100 $\mu mol \ kg^{-1}$. We also need to provide TA and DIC concentrations for the Owheo. These measurements do not (yet) exist, but we can assume that other rivers on the eastcoast of the South island have very similar TA and DIC concentrations. We can also assume that TA = DIC for riverwater. Do a web search (use Google Scholar) a find a reference that has the information you need. **Answer the question below in your report template, and answer the vevox poll with the concentration you found.**
 
-```{r WebSearch-2}
-  question_text("Which database exists that has ocean carbon measurements on the Otago shelf?",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 1)
-```
+**"Supply a reference (Author, year, journal) that has TA or DIC measurements for a eastcoast Otago river"**
 
-you will notice you need to log in to access the database, which you do not need to do. Instead, we can use a TA concentration of 2300 $\mu mol \ kg^{-1}$ and a DIC concentration of 2100 $\mu mol \ kg^{-1}$. We also need to provide TA and DIC concentrations for the Owheo. These measurements do not (yet) exist, but we can assume that other rivers on the eastcoast of the South island have very similar TA and DIC concentrations. We can also assume that TA = DIC for riverwater. Do a web search (use Google Scholar) a find a reference that has the information you need 
+Before running the model, take a look at the code below. The code has increased a little in complexity. We have added four lines to calculated the transport at the boundaries (e.g, 'F_TA_ocean_in'). We have also added a call at the beginning ('TA.harbour  <- state[1]'), and at the end ('ddt.TA.harbour <- ...'). These calls are so the code knows what our **state variables** are: which are the things we are calculating, which is different from **parameters**, which is the numbers we know and supply the model with.
 
-```{r WebSearch-3}
-  question_text("Supply a reference (Author, year, journal) that has TA or DIC measurements for a eastcoast Otago river",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 1)
-```
+There is also a conversion factor of 1.023, which is to convert the TA and DIC concentrations from $\mu mol \ kg^{-1}$ seawater to $\mu mol \ L^{-1}$ (remember that very first lab in week 1?). There is also a slightly more complicated conversion factor in that line ($1e3*3600*24*365.25$, 1e3 = $10^{3}$ = 1000).  **Answer the question below in your report template.**
 
-Before running the model, take a look at the code (below). There is a conversion factor of 1.023 (see at the end of L25), which is to convert the TA and DIC concentrations from $\mu mol \ kg^{-1}$ seawater to $\mu mol \ L^{-1}$ (remember that very first lab in week 29?). There is also a slightly more complicated conversion factor in that line ($1e3*3600*24*365.25$, 1e3 = $10^{10}$ = 1000). This is to convert the water flow from m3/s to what unit?
+**What unit does m3/s become if I multiply it with ‘1000*3600*24*365.25’ ?**
 
-```{r unit-conversion-1}
-  question_text("What unit does m3/s convert to if you multiply it with 1000 x 3600 x 24 x 365.25?",
-    answer("dm3/yr", correct = TRUE),
-    answer("dm3/year", correct = TRUE),
-    answer("dm3/y", correct = TRUE),
-    answer("dm3 yr-1", correct = TRUE),
-    answer("dm3 year-1", correct = TRUE),
-    answer("dm3 y-1", correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = "Try again!",
-    rows = 1)
-```
-Now put in your values (check your units!) and run the model. 
+Now put in all the parameter values (check your units!) and run the model. Assume the DIC of the Owheo is the same as the alkalinity (which is a fair assumption for freshwater systems).
 
 ```{r dissolved-tracers, exercise=TRUE}
 pars <- list(
-  TA.Owheo  = 500.,  # [umol/kg] Concentration of TA in the Owheo River
-  DIC.Owheo = 500.,  # [umol/kg] Concentration of DIC in the Owheo River
-  TA.ocean  = 2300., # [umol/kg] Concentration of TA in the open ocean
-  DIC.ocean = 2100., # [umol/kg] Concentration of DIC in the open ocean
+  TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
+  DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
+  TA.ocean  = 1.0,  # [umol/kg] Concentration of TA in the open ocean
+  DIC.ocean = 1.0,  # [umol/kg] Concentration of DIC in the open ocean
   
-  V.harbour = 0.194*1e12, #[dm3] Volume of Otago harbour
-  
-  S.surface = 33.,  # [-] Salinity surface water layer
-  S.deep    = 35.,  # [-] Salinity surface water layer
-  Q.Owheo   = 0.36  # [m3/s]
+  Q_ocean_in = 1.0, # [m3/s] flow of the ocean into the harbour
+  Q_Owheo    = 1.0, # [m3/s] flow of the Owheo
+
+  V_box = 1.0, # [m3] volume of our box
+  A_box = 1.0  # [m3] surface area of our box
 )
 
 OH.box <- function(t, state, parameters)
@@ -206,8 +143,8 @@ OH.box <- function(t, state, parameters)
     
     ### Fluxes
     # estuarine exchange [umol yr-1]
-    Q_ocean_in  <- (S.surface*Q.Owheo) / (S.deep-S.surface)
-    Q_ocean_out <- (S.deep*Q.Owheo) / (S.deep-S.surface)
+    Q_ocean_in  <- Q_ocean_in
+    Q_ocean_out <- Q_ocean_in + Q_Owheo
     
     F_TA_ocean_in   <- (Q_ocean_in*1e3*3600*24*365.25)  * (TA.ocean*1.023)
     F_TA_ocean_out  <- (Q_ocean_out*1e3*3600*24*365.25) * (TA.harbour*1.023)
@@ -216,12 +153,12 @@ OH.box <- function(t, state, parameters)
     F_DIC_ocean_out <- (Q_ocean_out*1e3*3600*24*365.25) * (DIC.harbour*1.023)
     
     # riverine input [umol yr-1]
-    F_TA_owheo  <- (Q.Owheo*1e3*3600*24*365.25) * (TA.Owheo)
-    F_DIC_owheo <- (Q.Owheo*1e3*3600*24*365.25) * (DIC.Owheo)
+    F_TA_owheo  <- (Q_Owheo*1e3*3600*24*365.25) * (TA.Owheo)
+    F_DIC_owheo <- (Q_Owheo*1e3*3600*24*365.25) * (DIC.Owheo)
     
     ### Mass balances 
-    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo  )/(V.harbour/1.023)
-    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo )/(V.harbour/1.023)
+    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo  )/(V_box*1e3/1.023)
+    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo )/(V_box*1e3/1.023)
     
     ### assemble SV vector
     SV.return <- c(ddt.TA.harbour,ddt.DIC.harbour) 
@@ -241,55 +178,24 @@ print(paste("TA concentration in the Harbour = ", solution$y[[1]]," umol/kg"))
 print(paste("DIC concentration in the Harbour = ",solution$y[[2]]," umol/kg"))
 ```
 
-Try and increase the discharge of the Owheo river (hint:Q.Owheo) (e.g., increase it with a factor 1000). 
+Try and increase the discharge of the Owheo river (hint:Q.Owheo) (e.g., increase it with a factor 1000). **Answer the following question on vevox: What happens to the concentration of TA in the harbour when you increase the Owheo water flux?**
 
-```{r water-flow-3}
-  question_text("What happens to the concentration of TA in the harbour when you increase the Owheo water flux?",
-    answer(NULL, correct = TRUE),
-    allow_retry = TRUE,
-    try_again_button = "Edit Answer",
-    incorrect = NULL,
-    rows = 1)
-```
+At this point, we have not included any reactions or fluxes other than the water input at river boundary and the water flushing at the ocean boundary, so both TA and DIC act as "passive" tracers (they are not reacting but are only transported). This is similar to the passive tracers you used in weeks 3 and 4 for the Lagrangian particle tracking module, but is it the same? **answer the question below in your report template.**
 
-At this point, we have not included any reactions or fluxes other than the water input at river boundary and the water flushing at the ocean boundary, so both TA and DIC act as "passive" tracers (they are not reacting but are only transported). This is almost the same as the passive tracers you used in weeks 31 and 32 for the Lagrangian particle tracking module, with one major difference. It is this difference that makes these tracers behave 'Eulerian' and not 'Lagrangian'.
-
-```{r passive-tracers, echo=FALSE}
-question("What is the difference between the passive tracers here and the ones used during the Lagrangian particle tracking?",
-  answer("TA and DIC are dissolved", correct = TRUE),
-  answer("The particles in the Lagrangian module did not sink"),
-  answer("We were releasing many more tracers at once"),
-  answer("I really should have attended more of the workshops"),
-  random_answer_order = TRUE,
-  allow_retry = TRUE
-)
-```
+**"Is the approach we use in the box model Lagrangian or Eulerian? Why?"**
 
 Now proceed to the next step.
 
 ## Adding air-sea gas exchange (20 minutes)
 
-We have dissolved tracers (TA and DIC) that are transported into the harbour via the Owheo river, and that exchange at the open boundary. We are modelling the carbon cycle, and there is one (very) important flux we have not yet included: exchange of $CO_2$ gas between atmosphere and seawater. Do you remember (from week 34) Which parameters control how much gas can be dissolved in water?
+We have dissolved tracers (TA and DIC) that are transported into the harbour via the Owheo river, and that exchange at the open boundary. We are modelling the uptake of $CO_2$ from the atmosphere to the sea, and there is one (very) important flux we have not yet included: exchange of $CO_2$ gas between atmosphere and seawater. Do you remember (from week 6) which parameters control how much gas can be dissolved in water? **answer the question below in your report template.**
 
-```{r gas-dissolution-1, echo=FALSE}
-question("Which parameters control gas dissolution ?",
-  answer("Salinity", correct = TRUE),
-  answer("Temperature", correct = TRUE),
-  answer("Windspeed"),
-  answer("Ocean colour"),
-  answer("I really should have attended more of the workshops"),
-  random_answer_order = TRUE,
-  allow_retry = TRUE
-)
-```
-
-By adding air-sea gas exchange of $CO_2$, our conceptual box model now looks like this (note the extra arrow) 
-
-ADD FIGURE
+**Which parameters control gas dissolution ?**
 
 Calculating air-sea exchange can be done very simply if we know the gas concentration in the atmosphere ($pCO_2$) and the gas concentration in the water ($[CO_2]_{aq}$):
-$$ F_{air-sea} = k_{piston}(pCO_2 - [CO_2]_{aq}) $$
-In this equation, $k_{piston}$ is simply a parameter that tells how fast the gas goes towards equilibrium. in week 34 we discussed how the wind velocity is a major control on air-sea gas exchange. To calculate the air-sea exchange of $CO_2$, there is one complicating factor, namely (again discussed during week 34):
+$$ F_{sea-air,CO_2} = k_w (pCO_{2,sw}-pCO_{2,atm}) $$
+In this equation, $k_{w}$ is simply a parameter that tells how fast the gas goes towards equilibrium. In week 6 we discussed how the wind velocity is a major control on air-sea gas exchange.
+To calculate the air-sea exchange of $CO_2$, there is one complicating factor, namely (again discussed during week 6):
 
 ```{r gas-dissolution-2, echo=FALSE}
 question("What is the extra complicating factor for the dissolution of CO2 in seawater?",
@@ -302,11 +208,269 @@ question("What is the extra complicating factor for the dissolution of CO2 in se
 )
 
 ```
-So the solubility of $CO_2$ does not only depend on salinity and temperature, but also on the TA of seawater. This means we will have to solve the carbonate system before we can calculate the air-sea flux.
+So the solubility of $CO_2$ does not only depend on salinity and temperature, but also on the TA of seawater. This means we will have to solve the carbonate system before we can calculate the air-sea flux. In week 6 we saw that we can use R to solve the carbonate system using the CRAN:seacarb package and the 'carb' function. We can use the same equation as we used in week 6 (Wanninkhof, 2014, https://aslopubs.onlinelibrary.wiley.com/doi/10.4319/lom.2014.12.351)
+
+$$ F_{sea-air,CO_2} = 7.7 \ 10^{-4} \langle U^2 \rangle  (pCO_{2,sw}-pCO_{2,atm})$$
+which means we only need to find a windspeed for the Otago Harbour. We are trying to model long-term averages, so calculating the mean of the squares of the windspeed of the whole of 2024 should be close enough. Try and find some values online (or refer to the workshop from Week 6 to find the websites). Calculate the mean of the square of the windspeeds, and **fill in the value on vevox**.
+
+Check the code chunk below, see if you can find the air-sea flux equation, and if you can find the different parameters back.
+Fill in the parameters, run the code, and see what sea-air $CO_2$ flux the model calculates. 
+
+```{r sea-air-gas-flux, exercise=TRUE}
+pars <- list(
+  pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
+  U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
+  TC       = 1.0, # [degC] the temperature of Otago harbour water
+  S        = 1.0, # [-] the salinity of Otago harbour water
+  
+  TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
+  DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
+  TA.ocean  = 1.0,  # [umol/kg] Concentration of TA in the open ocean
+  DIC.ocean = 1.0,  # [umol/kg] Concentration of DIC in the open ocean
+  
+  Q_ocean_in = 1.0, # [m3/s] flow of the ocean into the harbour
+  Q_Owheo    = 1.0, # [m3/s] flow of the Owheo
+
+  V_box = 1.0, # [m3] volume of our box
+  A_box = 1.0  # [m2] surface area of our box
+)
+
+OH.box <- function(t, state, parameters)
+{
+  with(as.list(c(state, parameters)),{
+    
+    TA.harbour  <- state[1]  # TA in harbour
+    DIC.harbour <- state[2]  # DIC in harbour
+    
+    ### Fluxes
+    # estuarine exchange [umol yr-1]
+    Q_ocean_in  <- Q_ocean_in
+    Q_ocean_out <- Q_ocean_in + Q_Owheo
+    
+    F_TA_ocean_in   <- (Q_ocean_in*1e3*3600*24*365.25)  * (TA.ocean*1.023)
+    F_TA_ocean_out  <- (Q_ocean_out*1e3*3600*24*365.25) * (TA.harbour*1.023)
+    
+    F_DIC_ocean_in  <- (Q_ocean_in*1e3*3600*24*365.25)  * (DIC.ocean*1.023)
+    F_DIC_ocean_out <- (Q_ocean_out*1e3*3600*24*365.25) * (DIC.harbour*1.023)
+    
+    # riverine input [umol yr-1]
+    F_TA_owheo  <- (Q_Owheo*1e3*3600*24*365.25) * (TA.Owheo)
+    F_DIC_owheo <- (Q_Owheo*1e3*3600*24*365.25) * (DIC.Owheo)
+
+    # sea-air exchange [umol yr-1]
+    pCO2.harbour <- carb(flag=15,var1=TA.harbour*1e-6, var2=DIC.harbour*1e-6,T=TC, S=S)$pCO2
+    F_seaair_CO2 <- 7.7e-4*U2*(pCO2.harbour-pCO2_atm)*A_box 
+    
+    ### Mass balances 
+    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo                )/(V_box*1e3/1.023)
+    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo - F_seaair_CO2)/(V_box*1e3/1.023)
+    
+    ### assemble SV vector
+    SV.return <- c(ddt.TA.harbour,ddt.DIC.harbour) 
+    
+    # return list
+    return(list(
+      # Total rates of change
+      SV.return, 
+      # water volume fluxes
+      Q_ocean_in = Q_ocean_in, Q_ocean_out = Q_ocean_out,
+      # sea-air CO2 flux
+      F_seaair_CO2 = F_seaair_CO2/A_box)
+    )
+  })
+}  # end of model equations
+
+solution <- steady(y = c(pars$TA.ocean,pars$DIC.ocean), func = OH.box, method = "stode", positive=T, parms = pars)
+print(paste("TA concentration in the Harbour = ", solution$y[[1]]," umol/kg"))
+print(paste("DIC concentration in the Harbour = ",solution$y[[2]]," umol/kg"))
+print(paste("Sea-air CO2 flux = ",solution$F_seaair_CO2," mol/m2/yr"))
+```
+
+There are no reactions yet in the model, so why does the model predict a sea-air $CO_2$ flux? **Answer the question in your report template**.
+
+Now that we have a model that simulates transport and sea-air exchange, it is time to include some reactions. Before proceeding to the next part, **Answer the poll on vevox**, and then proceed to the next part
 
 ## Adding reactions (20 minutes)
 
+Try to use the web to find realistic numbers for the reactions identified. One good paper that is commonly used when looking at organic carbon in sediment is https://doi.org/10.1021/cr050347q . Look online for other numbers (hint: a paper exists that has made a mass-budget for $CaCO_3$ in the Otago Harbour)! **Supply the values on vevox**
 
+Have a look at the code chunk below - does the code make sense to you? Look at the line with 'ddt.TA.harbour <- ...' Why does inorganic carbon (=$CaCO_3$) burial remove 2x as much alkalinity? **Answer the question in your report template**
 
-```{r download-answers, child = system.file("child_documents/download_answers.Rmd", package = "tutorial.helpers")}
+```{r adding-reactions, exercise=TRUE}
+pars <- list(
+  R.Calcification     = 1.0, # [g C m-2 yr-1] Rate of calcification 
+  R.PrimaryProduction = 1.0, # [g C m-2 yr-1] Rate of Photosynthesis 
+  BE                  = 1.0, # [-] burial efficiency of inorganic and organic carbon
+  
+  pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
+  U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
+  TC       = 1.0, # [degC] the temperature of Otago harbour water
+  S        = 1.0, # [-] the salinity of Otago harbour water
+  
+  TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
+  DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
+  TA.ocean  = 1.0,  # [umol/kg] Concentration of TA in the open ocean
+  DIC.ocean = 1.0,  # [umol/kg] Concentration of DIC in the open ocean
+  
+  Q_ocean_in = 1.0, # [m3/s] flow of the ocean into the harbour
+  Q_Owheo    = 1.0, # [m3/s] flow of the Owheo
+
+  V_box = 1.0, # [m3] volume of our box
+  A_box = 1.0  # [m2] surface area of our box
+)
+
+OH.box <- function(t, state, parameters)
+{
+  with(as.list(c(state, parameters)),{
+    
+    TA.harbour  <- state[1]  # TA in harbour
+    DIC.harbour <- state[2]  # DIC in harbour
+    
+    ### Fluxes
+    # estuarine exchange [umol yr-1]
+    Q_ocean_in  <- Q_ocean_in
+    Q_ocean_out <- Q_ocean_in + Q_Owheo
+    
+    F_TA_ocean_in   <- (Q_ocean_in*1e3*3600*24*365.25)  * (TA.ocean*1.023)
+    F_TA_ocean_out  <- (Q_ocean_out*1e3*3600*24*365.25) * (TA.harbour*1.023)
+    
+    F_DIC_ocean_in  <- (Q_ocean_in*1e3*3600*24*365.25)  * (DIC.ocean*1.023)
+    F_DIC_ocean_out <- (Q_ocean_out*1e3*3600*24*365.25) * (DIC.harbour*1.023)
+    
+    # riverine input [umol yr-1]
+    F_TA_owheo  <- (Q_Owheo*1e3*3600*24*365.25) * (TA.Owheo)
+    F_DIC_owheo <- (Q_Owheo*1e3*3600*24*365.25) * (DIC.Owheo)
+
+    # sea-air exchange [umol yr-1]
+    pCO2.harbour <- carb(flag=15,var1=TA.harbour*1e-6, var2=DIC.harbour*1e-6,T=TC, S=S)$pCO2
+    F_seaair_CO2 <- 7.7e-4*U2*(pCO2.harbour-pCO2_atm)*A_box  
+    
+    ### Reactions [umol yr-1]
+    R_Cinorg <- BE*R.Calcification/12*1e6*A_box  
+    R_Corg   <- BE*R.PrimaryProduction/12*1e6*A_box 
+
+    ### Mass balances 
+    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo                          - 2*R_Cinorg)/(V_box*1e3/1.023)
+    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo - F_seaair_CO2 - R_Corg -   R_Cinorg)/(V_box*1e3/1.023)
+    
+    ### assemble SV vector
+    SV.return <- c(ddt.TA.harbour,ddt.DIC.harbour) 
+    
+    # return list
+    return(list(
+      # Total rates of change
+      SV.return, 
+      # pCO2 harbour water
+      pCO2.harbour = pCO2.harbour,
+      # water volume fluxes
+      Q_ocean_in = Q_ocean_in, Q_ocean_out = Q_ocean_out,
+      # sea-air CO2 flux
+      F_seaair_CO2 = F_seaair_CO2/A_box)
+    )
+  })
+}  # end of model equations
+
+solution <- steady(y = c(pars$TA.ocean,pars$DIC.ocean), func = OH.box, method = "stode", positive=T, parms = pars)
+print(paste("TA concentration in the Harbour = ", solution$y[[1]]," umol/kg"))
+print(paste("DIC concentration in the Harbour = ",solution$y[[2]]," umol/kg"))
+print(paste("pCO2 of seawater = ",solution$pCO2.harbour," ppm"))
+print(paste("Sea-air CO2 flux = ",solution$F_seaair_CO2," mol/m2/yr"))
 ```
+
+Run the model. What is the sea-air $CO_2$ flux that we simulate? **Supply the values on vevox**. 
+Does this makes sense? What did CO2 flux did you measure in week 6? **Answer the following question in your report template**:
+
+**What are the limitations of comparing our measured CO2 flux value with the simulated value?**
+
+## Run scenarios (20 minutes)
+
+Now we have completely setup our model, with realistic parameters and realistic outputs, we can use it to simulate scenarios and test hypotheses. This will be the second part of your assignment for this week, and you can work on this for the rest of today, or on Thursday. You will come up with a research question, develop a hypothesis, and then use the model we set up here to simulate these scenarios.
+
+Try to be clever about linking a hypothesis with a model parameter. For example, if you hypothesize that increasing seagrass coverage in the harbour would increase the CO2 removal, you can change different parameters, depending on the mechanism (think about the lecture in week 5 about what vegetation does to the carbon cycle).
+Another examples is increased storminess, this can increase precipitation and wind, which would affect two different parameters...
+Extra points can be won by thinking creatively, and having a well-thought through experimental design.
+
+The code below has the model code, you will need to update the parameters to the correct ones, and then run 
+```{r running-scenarios, exercise=TRUE}
+pars <- list(
+  R.Calcification     = 1.0, # [g C m-2 yr-1] Rate of calcification 
+  R.PrimaryProduction = 1.0, # [g C m-2 yr-1] Rate of Photosynthesis 
+  BE                  = 1.0, # [-] burial efficiency of inorganic and organic carbon
+  
+  pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
+  U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
+  TC       = 1.0, # [degC] the temperature of Otago harbour water
+  S        = 1.0, # [-] the salinity of Otago harbour water
+  
+  TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
+  DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
+  TA.ocean  = 1.0,  # [umol/kg] Concentration of TA in the open ocean
+  DIC.ocean = 1.0,  # [umol/kg] Concentration of DIC in the open ocean
+  
+  Q_ocean_in = 1.0, # [m3/s] flow of the ocean into the harbour
+  Q_Owheo    = 1.0, # [m3/s] flow of the Owheo
+
+  V_box = 1.0, # [m3] volume of our box
+  A_box = 1.0  # [m2] surface area of our box
+)
+
+OH.box <- function(t, state, parameters)
+{
+  with(as.list(c(state, parameters)),{
+    
+    TA.harbour  <- state[1]  # TA in harbour
+    DIC.harbour <- state[2]  # DIC in harbour
+    
+    ### Fluxes
+    # estuarine exchange [umol yr-1]
+    Q_ocean_in  <- Q_ocean_in
+    Q_ocean_out <- Q_ocean_in + Q_Owheo
+    
+    F_TA_ocean_in   <- (Q_ocean_in*1e3*3600*24*365.25)  * (TA.ocean*1.023)
+    F_TA_ocean_out  <- (Q_ocean_out*1e3*3600*24*365.25) * (TA.harbour*1.023)
+    
+    F_DIC_ocean_in  <- (Q_ocean_in*1e3*3600*24*365.25)  * (DIC.ocean*1.023)
+    F_DIC_ocean_out <- (Q_ocean_out*1e3*3600*24*365.25) * (DIC.harbour*1.023)
+    
+    # riverine input [umol yr-1]
+    F_TA_owheo  <- (Q_Owheo*1e3*3600*24*365.25) * (TA.Owheo)
+    F_DIC_owheo <- (Q_Owheo*1e3*3600*24*365.25) * (DIC.Owheo)
+
+    # sea-air exchange [umol yr-1]
+    pCO2.harbour <- carb(flag=15,var1=TA.harbour*1e-6, var2=DIC.harbour*1e-6,T=TC, S=S)$pCO2
+    F_seaair_CO2 <- 7.7e-4*U2*(pCO2.harbour-pCO2_atm)*A_box  
+    
+    ### Reactions [umol yr-1]
+    R_Cinorg <- BE*R.Calcification/12*1e6*A_box  
+    R_Corg   <- BE*R.PrimaryProduction/12*1e6*A_box 
+
+    ### Mass balances 
+    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo                          - 2*R_Cinorg)/(V_box*1e3/1.023)
+    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo - F_seaair_CO2 - R_Corg -   R_Cinorg)/(V_box*1e3/1.023)
+    
+    ### assemble SV vector
+    SV.return <- c(ddt.TA.harbour,ddt.DIC.harbour) 
+    
+    # return list
+    return(list(
+      # Total rates of change
+      SV.return, 
+      # pCO2 harbour water
+      pCO2.harbour = pCO2.harbour,
+      # water volume fluxes
+      Q_ocean_in = Q_ocean_in, Q_ocean_out = Q_ocean_out,
+      # sea-air CO2 flux
+      F_seaair_CO2 = F_seaair_CO2/A_box)
+    )
+  })
+}  # end of model equations
+
+solution <- steady(y = c(pars$TA.ocean,pars$DIC.ocean), func = OH.box, method = "stode", positive=T, parms = pars)
+print(paste("TA concentration in the Harbour = ", solution$y[[1]]," umol/kg"))
+print(paste("DIC concentration in the Harbour = ",solution$y[[2]]," umol/kg"))
+print(paste("pCO2 of seawater = ",solution$pCO2.harbour," ppm"))
+print(paste("Sea-air CO2 flux = ",solution$F_seaair_CO2," mol/m2/yr"))
+```
+
+
+
