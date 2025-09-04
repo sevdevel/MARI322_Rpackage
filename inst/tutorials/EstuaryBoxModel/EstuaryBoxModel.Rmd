@@ -32,7 +32,7 @@ By the end of today's session, you should be able to:
 
 \* Use a simple pre-coded carbon cycle box model to answer environmentally relevant questions (which will be very useful for the last module of this paper!)
 
-## Determine on model dimensions (15 minutes)
+## Determine model dimensions (15 minutes)
 
 After deciding what our model type will be, we have to find the dimensions of our model domain. 
 In the code chunk below we will create our parameter vector, which will contain all our model parameters over time. The code chunk then prints the vector so we can see whether it is correct. 
@@ -384,11 +384,12 @@ Does this makes sense? What did CO2 flux did you measure in week 6? **Answer the
 
 ## Run scenarios (20 minutes)
 
-Now we have completely setup our model, with realistic parameters and realistic outputs, we can use it to simulate scenarios and test hypotheses. This will be the second part of your assignment for this week, and you can work on this for the rest of today, or on Thursday. You will come up with a research question, develop a hypothesis, and then use the model we set up here to simulate these scenarios.
+Now we have completely setup our model, with realistic parameters and realistic outputs, we can use it to simulate scenarios and test hypotheses. This will be the second part of your assignment for this week, and you can work on this for the rest of today, or on Thursday. You will come up with a research question, develop a hypothesis, and then use the model we set up here to simulate these scenarios. 
+We will just add two more parameters, called 'F_TA_external' and 'F_DIC_external'. These parameters are for cases where you might want to simulate what happens if you add an external source of alkalinity or DIC (which might not be directly relevant for this report, but it could be useful in the coming two weeks).
 
 Try to be clever about linking a hypothesis with a model parameter. For example, if you hypothesize that increasing seagrass coverage in the harbour would increase the CO2 removal, you can change different parameters, depending on the mechanism (think about the lecture in week 5 about what vegetation does to the carbon cycle).
 Another examples is increased storminess, this can increase precipitation and wind, which would affect two different parameters...
-Extra points can be won by thinking creatively, and having a well-thought through experimental design.
+Extra points can be won by thinking creatively, and having a well thought through experimental design.
 
 The code below has the model code, you will need to update the parameters to the correct ones, and then run 
 ```{r running-scenarios, exercise=TRUE}
@@ -396,6 +397,9 @@ pars <- list(
   R.Calcification     = 1.0, # [g C m-2 yr-1] Rate of calcification 
   R.PrimaryProduction = 1.0, # [g C m-2 yr-1] Rate of Photosynthesis 
   BE                  = 1.0, # [-] burial efficiency of inorganic and organic carbon
+  
+  F_TA_external  = 0.0, # [umol yr-1] external alkalinity supply
+  F_DIC_external = 0.0, # [umol yr-1] external alkalinity supply
   
   pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
   U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
@@ -445,8 +449,8 @@ OH.box <- function(t, state, parameters)
     R_Corg   <- BE*R.PrimaryProduction/12*1e6*A_box 
 
     ### Mass balances 
-    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo                          - 2*R_Cinorg)/(V_box*1e3/1.023)
-    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo - F_seaair_CO2 - R_Corg -   R_Cinorg)/(V_box*1e3/1.023)
+    ddt.TA.harbour  <- (F_TA_ocean_in  - F_TA_ocean_out  + F_TA_owheo                          - 2*R_Cinorg + F_TA_external)/(V_box*1e3/1.023)
+    ddt.DIC.harbour <- (F_DIC_ocean_in - F_DIC_ocean_out + F_DIC_owheo - F_seaair_CO2 - R_Corg -   R_Cinorg + F_DIC_external)/(V_box*1e3/1.023)
     
     ### assemble SV vector
     SV.return <- c(ddt.TA.harbour,ddt.DIC.harbour) 
