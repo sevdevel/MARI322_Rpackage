@@ -116,7 +116,7 @@ Before running the model, take a look at the code below. The code has increased 
 
 There is also a conversion factor of 1.023, which is to convert the TA and DIC concentrations from $\mu mol \ kg^{-1}$ seawater to $\mu mol \ L^{-1}$ (remember that very first lab in week 1?). There is also a slightly more complicated conversion factor in that line ($1e3*3600*24*365.25$, 1e3 = $10^{3}$ = 1000).  **Answer the question below in your report template.**
 
-**What unit does m3/s become if I multiply it with ‘1000*3600*24*365.25’ ?**
+**What unit does m3/s become if I multiply it with ‘1000x3600x24x365.25’ ?**
 
 Now put in all the parameter values (check your units!) and run the model. Assume the DIC of the Owheo is the same as the alkalinity (which is a fair assumption for freshwater systems).
 
@@ -219,9 +219,9 @@ Fill in the parameters, run the code, and see what sea-air $CO_2$ flux the model
 ```{r sea-air-gas-flux, exercise=TRUE}
 pars <- list(
   pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
-  U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
-  TC       = 1.0, # [degC] the temperature of Otago harbour water
-  S        = 1.0, # [-] the salinity of Otago harbour water
+  U2       = 1.0, # [m2/s2] the mean of the square of windspeeds over the Otago harbour
+  TC       = 15.0, # [degC] the temperature of Otago harbour water
+  S        = 35.0, # [-] the salinity of Otago harbour water
   
   TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
   DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
@@ -286,7 +286,7 @@ print(paste("DIC concentration in the Harbour = ",solution$y[[2]]," umol/kg"))
 print(paste("Sea-air CO2 flux = ",solution$F_seaair_CO2," mol/m2/yr"))
 ```
 
-There are no reactions yet in the model, so why does the model predict a sea-air $CO_2$ flux? **Answer the question in your report template**.
+There are no reactions yet in the model, so why does the model predict a sea-air $CO_2$ flux? Think about what is already included in the model, and how acid-base and air-sea exchange works. **Answer the question in your report template**.
 
 Now that we have a model that simulates transport and sea-air exchange, it is time to include some reactions. Before proceeding to the next part, **Answer the poll on vevox**, and then proceed to the next part
 
@@ -294,7 +294,7 @@ Now that we have a model that simulates transport and sea-air exchange, it is ti
 
 Try to use the web to find realistic numbers for the reactions identified. One good paper that is commonly used when looking at organic carbon in sediment is https://doi.org/10.1021/cr050347q . Look online for other numbers (hint: a paper exists that has made a mass-budget for $CaCO_3$ in the Otago Harbour)! **Supply the values on vevox**
 
-Have a look at the code chunk below - does the code make sense to you? Look at the line with 'ddt.TA.harbour <- ...' Why does inorganic carbon (=$CaCO_3$) burial remove 2x as much alkalinity? **Answer the question in your report template**
+Have a look at the code chunk below - does the code make sense to you? Look at line 54 ('ddt.TA.harbour <- ...') Why does inorganic carbon (=$CaCO_3$) burial remove 2x as much alkalinity? **Answer the question in your report template**
 
 ```{r adding-reactions, exercise=TRUE}
 pars <- list(
@@ -304,8 +304,8 @@ pars <- list(
   
   pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
   U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
-  TC       = 1.0, # [degC] the temperature of Otago harbour water
-  S        = 1.0, # [-] the salinity of Otago harbour water
+  TC       = 15.0, # [degC] the temperature of Otago harbour water
+  S        = 35.0, # [-] the salinity of Otago harbour water
   
   TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
   DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
@@ -403,8 +403,8 @@ pars <- list(
   
   pCO2_atm = 1.0, # [ppm] the atmospheric CO2 concentration
   U2       = 1.0, # [m2/s2] the windspeed over the Otago harbour
-  TC       = 1.0, # [degC] the temperature of Otago harbour water
-  S        = 1.0, # [-] the salinity of Otago harbour water
+  TC       = 15.0, # [degC] the temperature of Otago harbour water
+  S        = 35.0, # [-] the salinity of Otago harbour water
   
   TA.Owheo  = 1.0,  # [umol/kg] Concentration of TA in the Owheo River
   DIC.Owheo = 1.0,  # [umol/kg] Concentration of DIC in the Owheo River
