@@ -26,7 +26,7 @@ By the end of today's session, you should be able to:
 
 \* Understand how the different aspects of oceanography are complementary when we want to fully understand a marine system
 
-\* Find necessary information about your study site on the web
+\* Have a basic understanding on how to decide on model aspects and find the required information
 
 \* Understand which lines of code relate to which real-life process
 
